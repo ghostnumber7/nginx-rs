@@ -1,4 +1,4 @@
-use crate::{bindings::*, ngx_null_string};
+use crate::{ bindings::*, ngx_null_string };
 use crate::core::*;
 
 use crate::http::status::*;
@@ -20,15 +20,18 @@ macro_rules! http_request_handler {
 }
 
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct Request(ngx_http_request_t);
 
 impl Request {
     /// Create a [`Request`] from an [`ngx_http_request_t`].
     ///
     /// [`ngx_http_request_t`]: https://nginx.org/en/docs/dev/development_guide.html#http_request
+    ///
+    /// # Safety
+    /// The caller has provided a valid non-null pointer to a valid `ngx_http_request_t`
+    /// which shares the same representation as `Request`.
     pub unsafe fn from_ngx_http_request<'a>(r: *mut ngx_http_request_t) -> &'a mut Request {
-        // SAFETY: The caller has provided a valid non-null pointer to a valid `ngx_http_request_t`
-        // which shares the same representation as `Request`.
         &mut *r.cast::<Request>()
     }
 
@@ -53,6 +56,20 @@ impl Request {
         self.0.connection
     }
 
+    /// Module main configuration.
+    pub fn get_module_main_conf(&self, module: &ngx_module_t) -> *mut c_void {
+        unsafe {
+            *self.0.main_conf.add(module.ctx_index)
+        }
+    }
+
+    /// Module server configuration.
+    pub fn get_module_srv_conf(&self, module: &ngx_module_t) -> *mut c_void {
+        unsafe {
+            *self.0.srv_conf.add(module.ctx_index)
+        }
+    }
+
     /// Module location configuration.
     pub fn get_module_loc_conf(&self, module: &ngx_module_t) -> *mut c_void {
         unsafe {
@@ -63,16 +80,21 @@ impl Request {
     /// Get the value of a [complex value].
     ///
     /// [complex value]: https://nginx.org/en/docs/dev/development_guide.html#http_complex_values
-    pub fn get_complex_value(&self, cv: &ngx_http_complex_value_t) -> Option<&NgxStr> {
+    pub fn get_complex_value(&self, cv: *mut ngx_http_complex_value_t) -> Option<&NgxStr> {
         let r = (self as *const Request as *mut Request).cast();
-        let val = cv as *const ngx_http_complex_value_t as *mut ngx_http_complex_value_t;
+
         // SAFETY: `ngx_http_complex_value` does not mutate `r` or `val` and guarentees that
         // a valid Nginx string is stored in `value` if it successfully returns.
         unsafe {
             let mut value = ngx_null_string!();
-            if ngx_http_complex_value(r, val, &mut value) != NGX_OK as ngx_int_t {
-                return None;
+
+            if !cv.is_null() {
+                let val = cv as *const ngx_http_complex_value_t as *mut ngx_http_complex_value_t;
+                if ngx_http_complex_value(r, val, &mut value) != NGX_OK as ngx_int_t {
+                    return None;
+                }
             }
+
             Some(NgxStr::from_ngx_str(value))
         }
     }
@@ -93,6 +115,15 @@ impl Request {
     pub fn user_agent(&self) -> &NgxStr {
         unsafe {
             NgxStr::from_ngx_str((*self.0.headers_in.user_agent).value)
+        }
+    }
+
+    /// Client HTTP [Method].
+    ///
+    /// [Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+    pub fn method(&self) -> &NgxStr {
+        unsafe {
+            NgxStr::from_ngx_str(self.0.method_name)
         }
     }
 

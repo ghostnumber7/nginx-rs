@@ -30,17 +30,20 @@ macro_rules! ngx_null_string {
 
 /// Representation of a borrowed [Nginx string].
 ///
-/// [Nginx string]: https://nginx.org/en/docs/dev/development_guide.html#string_overview
+/// [Nginx string]: <https://nginx.org/en/docs/dev/development_guide.html#string_overview>
 pub struct NgxStr([u_char]);
 
 impl NgxStr {
     /// Create an [`NgxStr`] from an [`ngx_str_t`].
     ///
-    /// [`ngx_str_t`]: https://nginx.org/en/docs/dev/development_guide.html#string_overview
+    /// [`ngx_str_t`]: <https://nginx.org/en/docs/dev/development_guide.html#string_overview>
+    ///
+    /// # Safety
+    ///
+    /// The caller has provided a valid `ngx_str_t` with a `data` pointer that points
+    /// to range of bytes of at least `len` bytes, whose content remains valid and doesn't
+    /// change for the lifetime of the returned `NgxStr`.
     pub unsafe fn from_ngx_str<'a>(str: ngx_str_t) -> &'a NgxStr {
-        // SAFETY: The caller has provided a valid `ngx_str_t` with a `data` pointer that points
-        // to range of bytes of at least `len` bytes, whose content remains valid and doesn't
-        // change for the lifetime of the returned `NgxStr`.
         slice::from_raw_parts(str.data, str.len).into()
     }
 

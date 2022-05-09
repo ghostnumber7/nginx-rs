@@ -8,7 +8,7 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-nginx-rs = { path = "../../nginx-rs" }
+nginx-rs = { path = "../../nginx-rs", features = ["with-compat"] }
 
 [profile.release]
 debug = true

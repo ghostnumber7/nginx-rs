@@ -54,7 +54,7 @@ impl Pool {
     }
 
     unsafe fn add_cleanup_for_value<T>(&mut self, value: *mut T) -> Result<(), ()> {
-        let cln = ngx_pool_cleanup_add(self.0, 0);
+        let cln = ngx_pool_cleanup_add(self.0, mem::size_of::<T>());
         if cln.is_null() {
             return Err(());
         }
@@ -84,6 +84,18 @@ impl Pool {
         unsafe {
             let p = self.alloc(mem::size_of::<T>()) as *mut T;
             ptr::write(p, value);
+            if self.add_cleanup_for_value(p).is_err() {
+                ptr::drop_in_place(p);
+                return ptr::null_mut();
+            };
+            p
+        }
+    }
+
+    pub fn allocate_size<T>(&mut self) -> *mut T {
+        unsafe {
+            let p = self.calloc(mem::size_of::<T>()) as *mut T;
+            // ptr::write(p, value);
             if self.add_cleanup_for_value(p).is_err() {
                 ptr::drop_in_place(p);
                 return ptr::null_mut();
