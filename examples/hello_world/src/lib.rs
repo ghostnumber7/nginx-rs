@@ -39,7 +39,7 @@ impl HTTPModule for Module {
 #[ngx_loc_conf]
 /// Define location block configuration
 struct LocConf {
-    text: NgxComplexValue,
+    text: *mut NgxComplexValue,
     enabled: bool
 }
 
@@ -115,7 +115,12 @@ http_request_handler!(ngx_http_hello_world_handler, |request: &mut Request| {
 
     // get text complex value
     let text = unsafe {
-        (*hlcf).text.get_value(request)
+        let text = (*hlcf).text;
+        if text.is_null() {
+            NgxStr::from_ngx_str(ngx_null_string!())
+        } else {
+            (*text).get_value(request)
+        }
     };
 
     // Create body

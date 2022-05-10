@@ -80,7 +80,7 @@ impl Request {
     /// Get the value of a [complex value].
     ///
     /// [complex value]: https://nginx.org/en/docs/dev/development_guide.html#http_complex_values
-    pub fn get_complex_value(&self, cv: *mut ngx_http_complex_value_t) -> Option<&NgxStr> {
+    pub fn get_complex_value(&self, cv: *mut ngx_http_complex_value_t) -> Option<NgxStr> {
         let r = (self as *const Request as *mut Request).cast();
 
         // SAFETY: `ngx_http_complex_value` does not mutate `r` or `val` and guarentees that
@@ -112,7 +112,7 @@ impl Request {
     /// Client HTTP [User-Agent].
     ///
     /// [User-Agent]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
-    pub fn user_agent(&self) -> &NgxStr {
+    pub fn user_agent(&self) -> NgxStr {
         unsafe {
             NgxStr::from_ngx_str((*self.0.headers_in.user_agent).value)
         }
@@ -121,7 +121,7 @@ impl Request {
     /// Client HTTP [Method].
     ///
     /// [Method]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
-    pub fn method(&self) -> &NgxStr {
+    pub fn method(&self) -> NgxStr {
         unsafe {
             NgxStr::from_ngx_str(self.0.method_name)
         }
