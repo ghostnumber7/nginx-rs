@@ -11,7 +11,8 @@ use std::ptr;
 #[ngx_module_name(hello_world)]
 #[ngx_module_commands(
     HelloWorldCommand,
-    HelloWorldTextCommand
+    HelloWorldTextCommand,
+    HelloWorldMultipleCommand
 )]
 struct Module;
 
@@ -36,11 +37,12 @@ impl HTTPModule for Module {
     }
 }
 
-#[ngx_loc_conf]
 /// Define location block configuration
+#[ngx_loc_conf]
 struct LocConf {
     text: *mut NgxComplexValue,
-    enabled: bool
+    enabled: bool,
+    multiple_value: NgxArray,
 }
 
 impl Merge for LocConf {
@@ -51,6 +53,10 @@ impl Merge for LocConf {
 
         if !self.enabled {
             self.enabled = prev.enabled;
+        }
+
+        if self.multiple_value.is_empty() && !prev.multiple_value.is_empty() {
+            self.multiple_value = prev.multiple_value.clone();
         }
     }
 }
@@ -83,13 +89,16 @@ struct HelloWorldTextCommand;
 impl NgxCommand for HelloWorldTextCommand {
     const TYPE: u32 = NGX_HTTP_MAIN_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1;
     const CONF: ngx_uint_t = NGX_HTTP_LOC_CONF_OFFSET;
-    const OFFSET: ngx_uint_t = LocConf::text_OFFSET;
+    ngx_http_set_complex_value_slot!(LocConf, text);
+}
 
-    fn handler (cf: *mut ngx_conf_t, cmd: *mut ngx_command_t, conf: *mut c_void) -> *mut c_char {
-        unsafe {
-            ngx_http_set_complex_value_slot(cf, cmd, conf)
-        }
-    }
+#[ngx_command(hello_world_multiple)]
+struct HelloWorldMultipleCommand;
+
+impl NgxCommand for HelloWorldMultipleCommand {
+    const TYPE: u32 = NGX_HTTP_LOC_CONF|NGX_CONF_TAKE4;
+    const CONF: ngx_uint_t = NGX_HTTP_LOC_CONF_OFFSET;
+    ngx_conf_set_str_array_slot!(LocConf, multiple_value);
 }
 
 http_request_handler!(ngx_http_hello_world_access_handler, |request: &mut Request| {
@@ -97,7 +106,10 @@ http_request_handler!(ngx_http_hello_world_access_handler, |request: &mut Reques
     let enabled = unsafe { (*hlcf).enabled };
 
     if enabled {
-        ngx_log_debug_http!(request, "called access_handler. method = {}", request.method().to_string_lossy());
+        unsafe {
+            let items = &(*hlcf).multiple_value;
+            ngx_log_debug_http!(request, "called access_handler. method = {} items={:#?}", request.method().to_string_lossy(), items);
+        }
     }
 
     OK

@@ -61,8 +61,6 @@ pub fn expand_module(attr: TokenStream, item: DeriveInput) -> Result<TokenStream
     };
 
     impl HTTPModuleContext for #item_name {
-      const MODULE_NAME: &'static str = #mod_name_str;
-
       fn get_http_main_conf_ (_cf: *mut ngx_conf_t) -> *mut c_void {
           unsafe { ngx_http_conf_get_module_main_conf(_cf, &#mod_name) }
       }

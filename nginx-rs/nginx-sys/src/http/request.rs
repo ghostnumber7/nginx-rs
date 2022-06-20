@@ -49,11 +49,24 @@ impl Request {
         }
     }
 
+    /// Pointer to a [`ngx_http_cache_t`] client connection object.
+    ///
+    /// [`ngx_http_cache_t`]: https://nginx.org/en/docs/dev/development_guide.html#cache
+    pub fn cache(&self) -> *mut ngx_http_cache_t {
+        self.0.cache
+    }
+
+    // modules, modules_n
+
     /// Pointer to a [`ngx_connection_t`] client connection object.
     ///
     /// [`ngx_connection_t`]: https://nginx.org/en/docs/dev/development_guide.html#connection
     pub fn connection(&self) -> *mut ngx_connection_t {
         self.0.connection
+    }
+
+    pub fn upstream(&self) -> *mut ngx_http_upstream_t {
+        self.0.upstream
     }
 
     /// Module main configuration.

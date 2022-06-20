@@ -51,6 +51,13 @@ The resulting `.so` in `target/release` can then be loaded using the
 * implement for static library compiled with nginx
 * make it work on mac / windows
 * add tests
+* use Box for complex value?
+* document slots macros
+* move need for `*mut NgxComplexValue`
+* improve merge logic
+* simplify how commands are constructed
+* remove need for const offset
+* remove http_proxy definitions from c wrapper
 * find and fix all the bugs I have no idea are there
 * add more bugs
 

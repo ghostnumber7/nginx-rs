@@ -2,11 +2,13 @@ mod buffer;
 mod pool;
 mod status;
 mod string;
+mod array;
 
 pub use buffer::*;
 pub use pool::*;
 pub use status::*;
 pub use string::*;
+pub use array::*;
 
 /// Static empty configuration directive initializer for [`ngx_command_t`].
 ///

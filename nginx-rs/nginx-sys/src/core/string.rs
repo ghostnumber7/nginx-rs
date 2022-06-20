@@ -1,6 +1,6 @@
 use crate::bindings::*;
 
-use std::slice;
+use std::{slice, fmt};
 use std::str::{self, Utf8Error};
 use std::borrow::Cow;
 
@@ -79,6 +79,18 @@ impl Clone for NgxStr {
   fn clone(&self) -> NgxStr {
       *self
   }
+}
+
+impl fmt::Debug for NgxStr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.write_fmt(format_args!("NgxStr(\"{}\")", self.to_string_lossy()))
+    }
+}
+
+impl fmt::Display for NgxStr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", String::from(self))
+    }
 }
 
 impl From<&[u8]> for NgxStr {

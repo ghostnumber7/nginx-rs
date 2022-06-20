@@ -22,8 +22,6 @@ pub trait NgxCommand {
 }
 
 pub trait HTTPModuleContext {
-    const MODULE_NAME: &'static str;
-
     fn get_http_main_conf_ (_cf: *mut ngx_conf_t) -> *mut c_void {
         ptr::null_mut()
     }

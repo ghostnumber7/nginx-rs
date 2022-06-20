@@ -29,7 +29,7 @@ fn handle_loc_struct(ast: &DeriveInput, fields: &Fields) -> TokenStream {
              let fnames = fields.named.iter().map(|f| {
                  let ident = &f.ident;
                  let target_ident = match ident {
-                     Some(ident) => format_ident!("{}_OFFSET", ident.to_string()),
+                     Some(ident) => format_ident!("{}", ident.to_string()),
                      None => panic!("{}", "ident name not found")
                  };
 
