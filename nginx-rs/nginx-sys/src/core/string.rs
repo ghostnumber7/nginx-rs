@@ -71,6 +71,20 @@ impl NgxStr {
     pub fn is_empty(&self) -> bool {
         self.0.len == 0
     }
+
+    pub fn to_ngx_str(&self) -> ngx_str_t {
+        self.0
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len
+    }
+}
+
+impl PartialEq for NgxStr {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_string_lossy() == other.to_string_lossy()
+    }
 }
 
 impl Copy for NgxStr {}
@@ -127,4 +141,18 @@ impl Default for NgxStr {
             NgxStr::from_ngx_str(ngx_null_string!())
         }
     }
+}
+
+#[macro_export]
+macro_rules! ngx_conf_set_str_slot {
+    ($struct:ident, $prop:ident) => {
+      fn handler (cf: *mut ngx_conf_t, cmd: *mut ngx_command_t, conf: *mut c_void) -> *mut c_char {
+        unsafe {
+            let conf = &mut *(conf as *mut $struct);
+            let args = (*(*cf).args).elts as *mut ngx_str_t;
+            conf.$prop = NgxStr::from_ngx_str(*args.add(1));
+        }
+        ptr::null_mut()
+      }
+    };
 }

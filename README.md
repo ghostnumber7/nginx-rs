@@ -58,6 +58,7 @@ The resulting `.so` in `target/release` can then be loaded using the
 * simplify how commands are constructed
 * remove need for const offset
 * remove http_proxy definitions from c wrapper
+* make cache purge example less bad
 * find and fix all the bugs I have no idea are there
 * add more bugs
 

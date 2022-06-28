@@ -1,3 +1,2 @@
 **/*.rs.bk
 **/target
-examples/cache_clean
