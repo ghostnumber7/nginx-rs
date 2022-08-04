@@ -18,7 +18,7 @@ macro_rules! ngx_modules {
 
         #[no_mangle]
         pub static mut ngx_module_names: [*const c_char; $crate::count!($( $mod, )+) + 1] = [
-            $( concat!(stringify!($mod), "\0").as_ptr() as *const u8, )+
+            $( concat!(stringify!($mod), "\0").as_ptr() as *const c_char, )+
             ptr::null()
         ];
 
